@@ -1,3 +1,6 @@
 # ff-12-neural-networks
 
-wsg
+Please use the below command to get all the required packages:
+```
+pip install -r requirements.txt
+```
