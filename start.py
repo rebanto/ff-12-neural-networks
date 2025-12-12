@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 
+
 X, y = make_moons(n_samples=500, noise=0.3, random_state=42)
 y = y.reshape(-1, 1)
 
@@ -29,3 +30,20 @@ plt.gca().add_artist(legend1)
 os.makedirs('plots', exist_ok=True)
 plt.savefig(os.path.join('plots', 'dataset_scatter.png'), bbox_inches='tight', dpi=150)
 plt.show()
+
+import random
+
+class Neuron:
+    def __init__(self, f1, f2):
+        self.f1 = f1
+        self.f2 = f2
+        self.w1 = random.random()
+        self.w2 = random.random()
+        self.bias = random.randint(1,10)
+
+    def step(self):
+        return (self.w1 * self.f1) + (self.w2 * self.f2) + self.bias
+
+n = Neuron(3, 2)
+print("\n\n\n")
+print(n.step())
