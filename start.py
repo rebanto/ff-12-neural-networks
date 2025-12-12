@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.datasets import make_moons # simple datatset for training the model
 import matplotlib.pyplot as plt
 import pandas as pd
+import os
 
 X, y = make_moons(n_samples=500, noise=0.3, random_state=42)
 y = y.reshape(-1, 1)
