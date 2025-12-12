@@ -33,16 +33,16 @@ plt.show()
 
 import random
 
-class Neuron:
-    def __init__(self, f1, f2):
-        self.f1 = f1
-        self.f2 = f2
-        self.w1 = random.random()
-        self.w2 = random.random()
-        self.b = random.random()
+# class Neuron:
+#     def __init__(self, f1, f2):
+#         self.f1 = f1
+#         self.f2 = f2
+#         self.w1 = random.random()
+#         self.w2 = random.random()
+#         self.b = random.random()
 
-    def forward(self):
-        return self.w1 * self.f1 + self.w2 * self.f2 + self.b
+#     def forward(self):
+#         return self.w1 * self.f1 + self.w2 * self.f2 + self.b
 
 class MSE:
     def forward(self, y_pred, y_true):
@@ -60,3 +60,17 @@ class ReLU:
 
     def backward(self, d_out):
         self.dinputs = d_out * (self.inputs > 0)
+
+class Dense:
+    def __init__(self, in_features, out_features):
+        self.weights = 0.1 * np.random.randn(in_features, out_features)
+        self.biases = np.zeros((1, out_features))
+
+    def forward(self, x):
+        self.inputs = x
+        self.output = np.dot(x, self.weights) + self.biases
+
+    def backward(self, d_out):
+        self.dweights = np.dot(self.inputs.T, d_out)
+        self.dbiases = np.sum(d_out, axis=0, keepdims=True)
+        self.dinputs = np.dot(d_out, self.weights.T)
