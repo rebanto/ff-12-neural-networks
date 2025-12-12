@@ -43,3 +43,12 @@ class Neuron:
 
     def forward(self):
         return self.w1 * self.f1 + self.w2 * self.f2 + self.b
+
+class MSE:
+    def forward(self, y_pred, y_true):
+        self.diff = y_pred - y_true
+        return np.mean(self.diff ** 2)
+    
+    def backward(self, y_pred, y_true):
+        samples = len(y_pred)
+        self.dinputs = (2 * self.diff) / samples
