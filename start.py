@@ -1,3 +1,4 @@
+
 import numpy as np
 from sklearn.datasets import make_moons # a simple classification dataset
 import matplotlib.pyplot as plt
@@ -31,44 +32,6 @@ os.makedirs('plots', exist_ok=True)
 plt.savefig(os.path.join('plots', 'dataset_scatter.png'), bbox_inches='tight', dpi=150)
 plt.show()
 
-import random
-
-# class Neuron:
-#     def __init__(self, f1, f2):
-#         self.f1 = f1
-#         self.f2 = f2
-#         self.w1 = random.random()
-#         self.w2 = random.random()
-#         self.b = random.random()
-
-#     def forward(self):
-#         return self.w1 * self.f1 + self.w2 * self.f2 + self.b
-
-class MSE:
-    def forward(self, y_pred, y_true):
-        self.diff = y_pred - y_true
-        return np.mean(self.diff ** 2)
-    
-    def backward(self, y_pred, y_true):
-        samples = len(y_pred)
-        self.dinputs = (2 * self.diff) / samples
-
-class ReLU:
-    def forward(self, x):
-        self.inputs = x
-        self.output = np.maximum(0, x)
-
-    def backward(self, d_out):
-        self.dinputs = d_out * (self.inputs > 0)
-
-class Sigmoid:
-    def forward(self, x):
-        self.input = x
-        self.output = 1 / (1 + np.exp(-x))
-
-    def backward(self, d_out):
-        self.dinputs = d_out * self.output * (1 - self.output)
-
 class Dense:
     def __init__(self, in_features, out_features):
         self.weights = 0.1 * np.random.randn(in_features, out_features)
@@ -83,11 +46,107 @@ class Dense:
         self.dbiases = np.sum(d_out, axis=0, keepdims=True)
         self.dinputs = np.dot(d_out, self.weights.T)
 
+class ReLU:
+    def forward(self, x):
+        self.inputs = x
+        self.output = np.maximum(0, x)
+    
+    def backward(self, d_out):
+        self.dinputs = d_out * (self.inputs > 0)
+
+class Sigmoid:
+    def forward(self, x):
+        self.inputs = X
+        self.output = 1 / (1 + np.exp(-x))
+
+    def backward(self, d_out):
+        self.dinputs = d_out * self.output * ( 1 - self.output)
+
+class MeanSquaredError:
+    def forward(self, y_pred, y):
+        self.diff = y_pred - y
+        return np.mean(self.diff**2)
+    
+    def backward(self, y_pred, y):
+        samples = len(y_pred)
+        self.dinputs = (2 * self.diff) / samples
+
 class SGD:
     def __init__(self, lr=0.1):
         self.lr = lr
 
     def step(self, layer):
         layer.weights -= self.lr * layer.dweights
-        layer.bases -= self.lr * layer.dbiases
+        layer.biases -= self.lr * layer.dbiases
 
+dense1 = Dense(2, 32)
+relu = ReLU()
+dense2 = Dense(32, 1)
+sigmoid = Sigmoid()
+loss_fn = MeanSquaredError()
+optimizer = SGD(lr=0.1)
+
+NUM_EPOCHS = 20001
+
+for epoch in range(NUM_EPOCHS):
+    dense1.forward(X)
+    relu.forward(dense1.output)
+
+    dense2.forward(relu.output)
+    sigmoid.forward(dense2.output)
+    loss = loss_fn.forward(sigmoid.output, y)
+
+    acc = np.mean((sigmoid.output > 0.5).astype(int) == y)
+    if epoch % 1000 == 0:
+        print(f"Epoch {epoch}: loss={loss:.3f}, acc={acc:.3f}")
+
+    loss_fn.backward(sigmoid.output, y)
+    sigmoid.backward(loss_fn.dinputs)
+    dense2.backward(sigmoid.dinputs)
+    relu.backward(dense2.dinputs)
+    dense1.backward(relu.dinputs)
+
+    optimizer.step(dense1)
+    optimizer.step(dense2)
+
+
+print("Final evaluation and plotting decision boundary...")
+dense1.forward(X)
+relu.forward(dense1.output)
+dense2.forward(relu.output)
+sigmoid.forward(dense2.output)
+final_loss = loss_fn.forward(sigmoid.output, y)
+final_acc = np.mean((sigmoid.output > 0.5).astype(int) == y)
+print(f"final: loss={final_loss:.3f}, acc={final_acc:.3f}")
+
+
+pad = 0.5
+x_min, x_max = X[:, 0].min() - pad, X[:, 0].max() + pad
+y_min, y_max = X[:, 1].min() - pad, X[:, 1].max() + pad
+xx, yy = np.meshgrid(np.linspace(x_min, x_max, 300), np.linspace(y_min, y_max, 300))
+grid = np.c_[xx.ravel(), yy.ravel()]
+
+
+dense1.forward(grid); relu.forward(dense1.output)
+dense2.forward(relu.output); sigmoid.forward(dense2.output)
+Z = sigmoid.output.reshape(xx.shape)
+
+
+plt.figure(figsize=(8, 6))
+cf = plt.contourf(xx, yy, Z, levels=50, cmap='viridis', alpha=0.3)
+boundary = plt.contour(xx, yy, Z, levels=[0.5], colors='k', linewidths=1)
+scatter = plt.scatter(X[:, 0], X[:, 1], c=y.flatten(), cmap='viridis', marker='o', alpha=0.6, edgecolors='w', linewidth=0.5)
+plt.title('Decision Boundary — Trained Model')
+plt.xlabel('X_1')
+plt.ylabel('X_2')
+plt.grid(True, linestyle='--', alpha=0.6)
+
+cbar = plt.colorbar(cf)
+cbar.set_label('P(class=1)')
+
+class_handles, class_labels = scatter.legend_elements()
+boundary_handle = Line2D([0], [0], color='k', lw=1)
+plt.legend([*class_handles, boundary_handle], [*class_labels, 'Decision boundary'], title='Classes/Boundary')
+
+plt.savefig(os.path.join('plots', 'decision_boundary.png'), bbox_inches='tight', dpi=150)
+plt.show()
