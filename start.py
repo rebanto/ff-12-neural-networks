@@ -82,3 +82,12 @@ class Dense:
         self.dweights = np.dot(self.inputs.T, d_out)
         self.dbiases = np.sum(d_out, axis=0, keepdims=True)
         self.dinputs = np.dot(d_out, self.weights.T)
+
+class SGD:
+    def __init__(self, lr=0.1):
+        self.lr = lr
+
+    def step(self, layer):
+        layer.weights -= self.lr * layer.dweights
+        layer.bases -= self.lr * layer.dbiases
+
