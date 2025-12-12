@@ -30,3 +30,16 @@ plt.gca().add_artist(legend1)
 os.makedirs('plots', exist_ok=True)
 plt.savefig(os.path.join('plots', 'dataset_scatter.png'), bbox_inches='tight', dpi=150)
 plt.show()
+
+import random
+
+class Neuron:
+    def __init__(self, f1, f2):
+        self.f1 = f1
+        self.f2 = f2
+        self.w1 = random.random()
+        self.w2 = random.random()
+        self.b = random.random()
+
+    def forward(self):
+        return self.w1 * self.f1 + self.w2 * self.f2 + self.b
