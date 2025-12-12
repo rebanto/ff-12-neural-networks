@@ -52,3 +52,11 @@ class MSE:
     def backward(self, y_pred, y_true):
         samples = len(y_pred)
         self.dinputs = (2 * self.diff) / samples
+
+class ReLU:
+    def forward(self, x):
+        self.inputs = x
+        self.output = np.maximum(0, x)
+
+    def backward(self, d_out):
+        self.dinputs = d_out * (self.inputs > 0)
