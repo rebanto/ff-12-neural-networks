@@ -33,17 +33,28 @@ plt.show()
 
 import random
 
-class Neuron:
-    def __init__(self, f1, f2):
-        self.f1 = f1
-        self.f2 = f2
-        self.w1 = random.random()
-        self.w2 = random.random()
-        self.bias = random.randint(1,10)
+# class Neuron:
+#     def __init__(self, f1, f2):
+#         self.f1 = f1
+#         self.f2 = f2
+#         self.w1 = random.random()
+#         self.w2 = random.random()
+#         self.bias = random.randint(1,10)
 
-    def step(self):
-        return (self.w1 * self.f1) + (self.w2 * self.f2) + self.bias
+#     def step(self):
+#         return (self.w1 * self.f1) + (self.w2 * self.f2) + self.bias
 
-n = Neuron(3, 2)
-print("\n\n\n")
-print(n.step())
+# n = Neuron(3, 2)
+# print("\n\n\n")
+# print(n.step())
+
+class ReLU:
+    def forward(self, x):
+        self.input = x
+        self.output = np.maximum(x, 0)
+
+        return self.output
+
+relu = ReLU()
+
+print(relu.forward(-7.505050505))
