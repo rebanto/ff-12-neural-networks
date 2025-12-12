@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 
-
 X, y = make_moons(n_samples=500, noise=0.3, random_state=42)
 y = y.reshape(-1, 1)
 
@@ -31,30 +30,79 @@ os.makedirs('plots', exist_ok=True)
 plt.savefig(os.path.join('plots', 'dataset_scatter.png'), bbox_inches='tight', dpi=150)
 plt.show()
 
-import random
+class Dense:
+    def __init__(self, in_features, out_features):
+        self.weights = 0.1 * np.random.randn(in_features, out_features)
+        self.biases = np.zeros((1, out_features))
 
-# class Neuron:
-#     def __init__(self, f1, f2):
-#         self.f1 = f1
-#         self.f2 = f2
-#         self.w1 = random.random()
-#         self.w2 = random.random()
-#         self.bias = random.randint(1,10)
+    def forward(self, x):
+        self.inputs = x
+        self.output = np.dot(x, self.weights) + self.biases
 
-#     def step(self):
-#         return (self.w1 * self.f1) + (self.w2 * self.f2) + self.bias
-
-# n = Neuron(3, 2)
-# print("\n\n\n")
-# print(n.step())
+    def backward(self, d_out):
+        self.dweights = np.dot(self.inputs.T, d_out)
+        self.dbiases = np.sum(d_out, axis=0, keepdims=True)
+        self.dinputs = np.dot(d_out, self.weights.T)
 
 class ReLU:
     def forward(self, x):
-        self.input = x
-        self.output = np.maximum(x, 0)
+        self.inputs = x
+        self.output = np.maximum(0, x)
+    
+    def backward(self, d_out):
+        self.dinputs = d_out * (self.inputs > 0)
 
-        return self.output
+class Sigmoid:
+    def forward(self, x):
+        self.inputs = X
+        self.output = 1 / (1 + np.exp(-x))
 
+    def backward(self, d_out):
+        self.dinputs = d_out * self.output * ( 1 - self.output)
+
+class MeanSquaredError:
+    def forward(self, y_pred, y):
+        self.diff = y_pred - y
+        return np.mean(self.diff**2)
+    
+    def backward(self, y_pred, y):
+        samples = len(y_pred)
+        self.dinputs = (2 * self.diff) / samples
+
+class SGD:
+    def __init__(self, lr=0.1):
+        self.lr = lr
+
+    def step(self, layer):
+        layer.weights -= self.lr * layer.dweights
+        layer.biases -= self.lr * layer.dbiases
+
+dense1 = Dense(2, 32)
 relu = ReLU()
+dense2 = Dense(32, 1)
+sigmoid = Sigmoid()
+loss_fn = MeanSquaredError()
+optimizer = SGD(lr=0.1)
 
-print(relu.forward(-7.505050505))
+NUM_EPOCHS = 20001
+
+for epoch in range(NUM_EPOCHS):
+    dense1.forward(X)
+    relu.forward(dense1.output)
+
+    dense2.forward(relu.output)
+    sigmoid.forward(dense2.output)
+    loss = loss_fn.forward(sigmoid.output, y)
+
+    acc = np.mean((sigmoid.output > 0.5).astype(int) == y)
+    if epoch % 1000 == 0:
+        print(f"Epoch {epoch}: loss={loss:.3f}, acc={acc:.3f}")
+
+    loss_fn.backward(sigmoid.output, y)
+    sigmoid.backward(loss_fn.dinputs)
+    dense2.backward(sigmoid.dinputs)
+    relu.backward(dense2.dinputs)
+    dense1.backward(relu.dinputs)
+
+    optimizer.step(dense1)
+    optimizer.step(dense2)
