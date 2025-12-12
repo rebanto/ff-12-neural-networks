@@ -61,6 +61,14 @@ class ReLU:
     def backward(self, d_out):
         self.dinputs = d_out * (self.inputs > 0)
 
+class Sigmoid:
+    def forward(self, x):
+        self.input = x
+        self.output = 1 / (1 + np.exp(-x))
+
+    def backward(self, d_out):
+        self.dinputs = d_out * self.output * (1 - self.output)
+
 class Dense:
     def __init__(self, in_features, out_features):
         self.weights = 0.1 * np.random.randn(in_features, out_features)
